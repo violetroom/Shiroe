@@ -1,0 +1,7 @@
+__pycache__/
+/.private/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
