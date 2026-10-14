@@ -65,6 +65,21 @@ class ProbeSSHTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("exceeded 255 bytes", result.stdout)
 
+    def test_banner_at_255_byte_limit_is_accepted(self):
+        line = b"SSH-2.0-" + b"x" * 245 + b"\r\n"
+        self.assertEqual(len(line), 255)
+        result = self.probe([line])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS:", result.stdout)
+
+    def test_banner_at_256_bytes_is_rejected(self):
+        line = b"SSH-2.0-" + b"x" * 246 + b"\r\n"
+        self.assertEqual(len(line), 256)
+        result = self.probe([line])
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("exceeded 255 bytes", result.stdout)
+        self.assertNotIn("PASS:", result.stdout)
+
     def test_invalid_port_is_rejected(self):
         result = subprocess.run(
             [sys.executable, str(SCRIPT), "127.0.0.1", "0"],
