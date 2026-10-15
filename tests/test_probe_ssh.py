@@ -65,6 +65,13 @@ class ProbeSSHTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("exceeded 255 bytes", result.stdout)
 
+    def test_more_than_ten_non_ssh_lines_is_not_success(self):
+        lines = [b"pre-identification line %d\r\n" % i for i in range(11)]
+        result = self.probe(lines)
+        self.assertEqual(result.returncode, 1)
+        self.assertNotIn("PASS:", result.stdout)
+        self.assertIn("no SSH banner within 10 bounded lines", result.stdout)
+
     def test_banner_at_255_byte_limit_is_accepted(self):
         line = b"SSH-2.0-" + b"x" * 245 + b"\r\n"
         self.assertEqual(len(line), 255)
